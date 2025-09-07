@@ -7,6 +7,7 @@ CLIENTSECRET=""
 
 if CLIENTID == "" or CLIENTSECRET == "":
     print("Go to the spotify dashboard and put in your client ids and whatnot")
+    exit(1)
 
 artistID = input("Artist ID: ")
 playlistName = input("Playlist Name: ")
