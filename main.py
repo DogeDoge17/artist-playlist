@@ -13,7 +13,7 @@ artistID = input("Artist ID: ")
 playlistName = input("Playlist Name: ")
 
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-    client_id=artistID,
+    client_id=CLIENTID,
     client_secret=CLIENTSECRET,
     redirect_uri="http://127.0.0.1:8888/callback",
     scope="user-library-read playlist-modify-public playlist-modify-private"
@@ -48,6 +48,6 @@ for album in reversed(albums):
             foundSongs.add(uri)
             songs.append(uri)
             print("\t",song['name'], artists)
-
-    sp.playlist_add_items(playlist['id'], songs)
+    if len(songs) != 0:
+        sp.playlist_add_items(playlist['id'], songs)
 
