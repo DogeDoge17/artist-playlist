@@ -42,7 +42,7 @@ for album in albums:
     songRes = sp.album_tracks(album['uri'])
     songs = []
     for song in songRes['items']:
-        uri = song['name']
+        uri = song['uri']
         artists = [artist["name"] for artist in song["artists"]]
         foundArtist = False
         for artist in artists:
