@@ -20,7 +20,7 @@ if CLIENTID == "" or CLIENTSECRET == "" or CLIENTID == None or CLIENTSECRET == N
         f.write("SPOTIPY_CLIENT_ID=\nSPOTIPY_CLIENT_SECRET=")
     exit(1)
 
-if len(sys.argv) == 1:
+if len(sys.argv) == 2 and (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
     print('Usage:\n  python main.py "artist_id" "playlist_name"')
     print("\nParameters: ")
     print(
@@ -28,14 +28,17 @@ if len(sys.argv) == 1:
     )
     exit(1)
 
-artistID = ""
+artistsID = []
 playlistName = ""
 
 if len(sys.argv) > 2:
-    artistID = sys.argv[1]
+    artistsID.append(sys.argv[1])
     playlistName = sys.argv[2]
+    for i in range(3, len(sys.argv)):
+        artistsID.append(sys.argv[i])
+
 else:
-    artistID = input("Artist ID: ")
+    artistsID.append(input("Artist ID: "))
     playlistName = input("Playlist Name: ")
 
 sp = spotipy.Spotify(
@@ -47,8 +50,11 @@ sp = spotipy.Spotify(
     )
 )
 
-results = sp.artist_albums(artistID, "album,single")
-albums = results["items"]
+albums = []
+
+for artist in artistsID:
+    results = sp.artist_albums(artist, "album,single")
+    albums.extend(results["items"])
 
 while results["next"]:
     results = sp.next(results)
@@ -59,13 +65,21 @@ for i in range(len(albums)):
 albums.sort(key=lambda x: datetime.strptime(x["release_date"], "%Y-%m-%d"))
 
 foundSongs = set()
-artRes = sp.artist(artistID)
-theArt = artRes["name"]
+theArts = set()
+
+for artist in artistsID:
+    artRes = sp.artist(artist)
+    theArts.add(artRes["name"])
+
 user_id = sp.me()["id"]
 
 playlist = sp.user_playlist_create(
-    user=user_id, name=playlistName, public=True, description=f"all songs from {theArt}"
+    user=user_id,
+    name=playlistName,
+    public=True,
+    description=f"all songs from {", ".join(theArts)}",
 )
+
 for album in albums:
     print(album["name"], "-", album["release_date"])
     songRes = sp.album_tracks(album["uri"])
@@ -75,7 +89,7 @@ for album in albums:
         artists = [artist["name"] for artist in song["artists"]]
         foundArtist = False
         for artist in artists:
-            if theArt in artist:
+            if artist in theArts:
                 foundArtist = True
 
         if uri not in foundSongs and foundArtist:
