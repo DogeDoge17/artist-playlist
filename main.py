@@ -53,7 +53,9 @@ sp = spotipy.Spotify(
 albums = []
 
 for artist in artistsID:
-    results = sp.artist_albums(artist, "album,single")
+    results = sp.artist_albums(
+        artist, include_groups="album,single,appears_on,compilation"
+    )
     albums.extend(results["items"])
 
 while results["next"]:
