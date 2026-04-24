@@ -29,12 +29,23 @@ if len(sys.argv) == 2 and (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
     exit(1)
 
 artistsID = []
+extraAlbumID = []
 playlistName = ""
 
 if len(sys.argv) > 2:
     artistsID.append(sys.argv[1])
     playlistName = sys.argv[2]
+
+    album = False
     for i in range(3, len(sys.argv)):
+        if sys.argv[i] == "-a":
+            album = True
+            continue
+        if album:
+            extraAlbumID.append(sys.argv[i])
+            album = False
+            continue
+
         artistsID.append(sys.argv[i])
 
 else:
@@ -58,9 +69,13 @@ for artist in artistsID:
     )
     albums.extend(results["items"])
 
-while results["next"]:
-    results = sp.next(results)
-    albums.extend(results["items"])
+    while results["next"]:
+        results = sp.next(results)
+        albums.extend(results["items"])
+
+if len(extraAlbumID) > 0:
+    result = sp.albums(extraAlbumID)
+    albums.extend(result['albums'])
 
 for i in range(len(albums)):
     albums[i]["release_date"] += "2020-06-15"[len(albums[i]["release_date"]) :]
@@ -89,11 +104,11 @@ for album in albums:
     for song in songRes["items"]:
         uri = song["uri"]
         artists = [artist["name"] for artist in song["artists"]]
-        foundArtist = False
-        for artist in artists:
-            if artist in theArts:
-                foundArtist = True
 
+        foundArtist = any(artist in theArts for artist in artists) or any(
+            album["uri"].split(":")[2] in s for s in extraAlbumID
+        )
+ 
         if uri not in foundSongs and foundArtist:
             foundSongs.add(uri)
             songs.append(uri)
