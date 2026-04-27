@@ -32,18 +32,23 @@ artistsID = []
 extraAlbumID = []
 playlistName = ""
 
+chrisSorting = False
+
 if len(sys.argv) > 2:
     artistsID.append(sys.argv[1])
     playlistName = sys.argv[2]
 
     album = False
     for i in range(3, len(sys.argv)):
-        if sys.argv[i] == "-a":
-            album = True
-            continue
         if album:
             extraAlbumID.append(sys.argv[i])
             album = False
+            continue
+        if sys.argv[i] == "-a":
+            album = True
+            continue
+        if sys.argv[i] == "--chris":
+            chrisSorting = True
             continue
 
         artistsID.append(sys.argv[i])
@@ -75,11 +80,13 @@ for artist in artistsID:
 
 if len(extraAlbumID) > 0:
     result = sp.albums(extraAlbumID)
-    albums.extend(result['albums'])
+    albums.extend(result["albums"])
 
 for i in range(len(albums)):
     albums[i]["release_date"] += "2020-06-15"[len(albums[i]["release_date"]) :]
-albums.sort(key=lambda x: datetime.strptime(x["release_date"], "%Y-%m-%d"))
+albums.sort(
+    key=lambda x: datetime.strptime(x["release_date"], "%Y-%m-%d"), reverse=chrisSorting
+)
 
 foundSongs = set()
 theArts = set()
@@ -108,7 +115,7 @@ for album in albums:
         foundArtist = any(artist in theArts for artist in artists) or any(
             album["uri"].split(":")[2] in s for s in extraAlbumID
         )
- 
+
         if uri not in foundSongs and foundArtist:
             foundSongs.add(uri)
             songs.append(uri)
